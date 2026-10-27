@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Firebase Console -> Firestore Database -> Regeln -> diesen Text einfuegen
+// -> Veroeffentlichen.
+//
+// WICHTIG: Unten die beiden E-Mail-Adressen durch eure echten ersetzen
+// (alles klein geschrieben). Nur diese Adressen duerfen lesen und schreiben –
+// selbst wenn sich jemand anders ein Konto anlegt, sieht er nichts.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function erlaubt() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in [
+             'deine@mail.ch',
+             'ihre@mail.ch'
+           ];
+    }
+
+    // Groesse begrenzen, damit ein Bild das Dokumentlimit (1 MB) nicht sprengt.
+    function groesseOk() {
+      return request.resource.data.size() < 60
+        && (!('image' in request.resource.data) || request.resource.data.image.size() < 800000);
+    }
+
+    match /recipes/{recipeId} {
+      allow read: if erlaubt();
+      allow create, update: if erlaubt() && groesseOk()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0;
+      allow delete: if erlaubt();
+    }
+
+    match /shopping/{docId} {
+      allow read, write: if erlaubt();
+    }
+
+    // Alles andere ist gesperrt.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
