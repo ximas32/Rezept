@@ -82,8 +82,10 @@ export function render(root) {
       items = parseRecipeJson(raw);
     } catch (err) {
       return showError(
-        'Das ist kein gültiges JSON. Tipp: nur den Teil ab "{" bis zur letzten "}" kopieren – ' +
-        `oder die KI bitten, nochmals nur das JSON auszugeben. (${err.message})`
+        'Das ist kein gültiges JSON. Häufigster Grund: Der Text wurde aus der ' +
+        'Chat-Oberfläche markiert statt über den Kopier-Knopf am Codeblock – dann ' +
+        'schleichen sich Backslashes am Zeilenende oder Zeichen wie "&#x20;" ein. ' +
+        `Sonst hilft: die KI bitten, nur das JSON nochmals auszugeben. (${err.message})`
       );
     }
     if (!items.length) return showError('Im Text war kein Rezept zu finden.');

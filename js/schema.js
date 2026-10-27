@@ -200,12 +200,30 @@ export function toExportObject(recipe) {
   return rest;
 }
 
+/** Repariert, was beim Kopieren aus einer KI-Oberfläche kaputtgeht:
+    Markdown-Escapes (Backslash am Zeilenende), als HTML-Entity geschriebene
+    Leerzeichen und hängende Kommas. Alles davon macht JSON ungültig, ohne
+    dass man es auf den ersten Blick sieht. */
+function repairJsonText(text) {
+  return text
+    .replace(/&#x20;/gi, ' ')
+    .replace(/&#32;/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    // Backslash, auf den kein gültiges JSON-Escape folgt (z. B. "\" vor dem
+    // Zeilenumbruch) – in gültigem JSON kann das gar nicht vorkommen.
+    .replace(/\\(?![\\"/bfnrtu])/g, '')
+    .replace(/,(\s*[}\]])/g, '$1');
+}
+
 /** Nimmt JSON-Text und holt daraus eine Liste von Rohrezepten.
-    Verkraftet: Objekt, Array, {recipes:[...]} und ```json-Codeblöcke. */
+    Verkraftet: Objekt, Array, {recipes:[...]}, ```json-Codeblöcke und
+    als Markdown verunstaltete Antworten. */
 export function parseRecipeJson(text) {
   let cleaned = String(text || '').trim();
   const fence = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) cleaned = fence[1].trim();
+  cleaned = repairJsonText(cleaned);
   const start = cleaned.search(/[[{]/);
   if (start > 0) cleaned = cleaned.slice(start);
   const lastCurly = cleaned.lastIndexOf('}');
