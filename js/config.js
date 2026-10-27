@@ -5,21 +5,26 @@
    2. Im Projekt: Zahnrad -> Projekteinstellungen -> "Meine Apps"
       -> Web-App (</>) hinzufuegen -> die Werte aus "firebaseConfig"
       unten eintragen.
-   3. Authentication -> Sign-in method -> "E-Mail/Passwort" aktivieren.
-   4. Firestore Database -> Datenbank erstellen (Region: europe-west*).
-   5. Firestore -> Regeln -> Inhalt von firestore.rules einfuegen.
+   3. Sicherheit -> Authentifizierung -> Reiter "Anmeldemethode"
+      -> "E-Mail/Passwort" aktivieren.
+      (Nicht "Nutzer und Berechtigungen" in den Projekteinstellungen – das
+      regelt nur, wer das Firebase-Projekt verwalten darf.)
+   4. Datenbanken und Speicher -> Firestore -> Datenbank erstellen
+      (Edition "Standard", Region europe-west*, Produktionsmodus).
+   5. Firestore -> Reiter "Regeln" -> Inhalt von firestore.rules einfuegen.
 
    Die Werte hier sind KEINE Geheimnisse – sie duerfen oeffentlich im
    GitHub-Repo stehen. Den Zugriff schuetzen die Firestore-Regeln.
    ============================================================ */
 
 export const firebaseConfig = {
-  apiKey: 'DEIN_API_KEY',
-  authDomain: 'DEIN_PROJEKT.firebaseapp.com',
-  projectId: 'DEIN_PROJEKT',
-  storageBucket: 'DEIN_PROJEKT.firebasestorage.app',
-  messagingSenderId: '000000000000',
-  appId: '1:000000000000:web:xxxxxxxxxxxxxxxx'
+  apiKey: 'AIzaSyDky26GVY7DJmnoJU9yf8kJ3WV9ecehQZ8',
+  authDomain: 'rezepte-b2eba.firebaseapp.com',
+  projectId: 'rezepte-b2eba',
+  storageBucket: 'rezepte-b2eba.firebasestorage.app',
+  messagingSenderId: '688868103653',
+  appId: '1:688868103653:web:ae8a708f4fb96bd1a90b0c'
+  // measurementId braucht es nur fuer Google Analytics – nutzt die App nicht.
 };
 
 /* Wer darf rein? Dieselben Adressen auch in firestore.rules eintragen –

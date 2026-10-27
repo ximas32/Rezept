@@ -27,10 +27,17 @@ Kein Build-Schritt, kein npm: reines HTML/CSS/JavaScript. Hochladen reicht.
 
 1. [console.firebase.google.com](https://console.firebase.google.com) öffnen, mit Google-Konto anmelden.
 2. **Projekt hinzufügen** → Name z. B. `rezeptbuch` → Google Analytics kannst du abwählen.
-3. Links in der Navigation **Build → Authentication** → *Jetzt starten* →
-   Reiter **Sign-in method** → **E-Mail/Passwort** → aktivieren → speichern.
-4. **Build → Firestore Database** → *Datenbank erstellen* →
-   Standort **eur3 (europe-west)** → im Produktionsmodus starten.
+3. Links in der Navigation **Sicherheit → Authentifizierung** → *Jetzt starten* →
+   Reiter **Anmeldemethode** → Anbieter **E-Mail/Passwort** → aktivieren → speichern.
+4. **Datenbanken und Speicher → Firestore** → *Datenbank erstellen* →
+   Edition **Standard**, Standort **eur3 (europe-west)** → im **Produktionsmodus** starten.
+
+> **Nicht verwechseln:** *Projekteinstellungen → Nutzer und Berechtigungen* regelt,
+> welche Google-Konten das Firebase-Projekt **verwalten** dürfen. Die Konten eurer
+> App stehen woanders, nämlich unter *Sicherheit → Authentifizierung → Nutzer*.
+> Ältere Konsolen zeigen statt der Bereiche *Sicherheit* und *Datenbanken und
+> Speicher* noch **Build → Authentication** bzw. **Build → Firestore Database** –
+> gemeint ist dasselbe.
 
 > Der Spark-Plan (gratis) reicht locker: 1 GB Speicher, 50 000 Lesezugriffe pro Tag.
 > Eine Kreditkarte ist nicht nötig. **Firebase Storage** brauchen wir bewusst nicht –
@@ -43,13 +50,17 @@ Kein Build-Schritt, kein npm: reines HTML/CSS/JavaScript. Hochladen reicht.
 2. Firebase zeigt ein Objekt `firebaseConfig = { apiKey: … }`.
 3. Diese Werte in [`js/config.js`](js/config.js) eintragen.
 4. In derselben Datei bei `ALLOWED_EMAILS` eure beiden E-Mail-Adressen eintragen.
+5. Domain freigeben: **Sicherheit → Authentifizierung → Einstellungen** →
+   Bereich **Autorisierte Domains** → *Domain hinzufügen* → `ximas32.github.io`.
+   Für lokale Tests zusätzlich `localhost` eintragen – bei Projekten, die nach
+   dem 28.04.2025 erstellt wurden, ist localhost nicht mehr automatisch dabei.
 
 Diese Werte sind **keine Geheimnisse** und dürfen öffentlich im Repo stehen.
 Den Zugriff regeln die Sicherheitsregeln im nächsten Schritt.
 
 ### 3. Sicherheitsregeln setzen (wichtig!)
 
-1. Firebase-Console → **Firestore Database** → Reiter **Regeln**.
+1. Firebase-Console → **Datenbanken und Speicher → Firestore** → Reiter **Regeln**.
 2. Inhalt von [`firestore.rules`](firestore.rules) hineinkopieren.
 3. Die beiden Beispiel-Adressen durch eure echten ersetzen (klein geschrieben!).
 4. **Veröffentlichen**.
