@@ -1,7 +1,7 @@
 /* Service Worker – App-Shell Cache.
    WICHTIG: Bei jedem Deploy CACHE_VERSION hochzählen, damit alle Geräte
    die neue Version bekommen. */
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `rezeptbuch-${CACHE_VERSION}`;
 
 const SHELL = [
@@ -34,8 +34,13 @@ const SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      // Einzeln cachen: eine fehlende Datei soll nicht die ganze Installation kippen.
-      .then((cache) => Promise.allSettled(SHELL.map((url) => cache.add(url))))
+      // Einzeln cachen: eine fehlende Datei soll nicht die ganze Installation
+      // kippen. "reload" umgeht den Browser-Cache, damit hier nicht gleich
+      // wieder eine veraltete Fassung eingelagert wird.
+      .then((cache) => Promise.allSettled(SHELL.map((url) =>
+        fetch(new Request(url, { cache: 'reload' }))
+          .then((res) => (res.ok ? cache.put(url, res) : null))
+      )))
       .then(() => self.skipWaiting())
   );
 });
@@ -52,8 +57,19 @@ self.addEventListener('message', (event) => {
   if (event.data === 'skip-waiting') self.skipWaiting();
 });
 
-function holenUndCachen(req) {
-  return fetch(req).then((res) => {
+/**
+ * @param {Request} req
+ * @param {boolean} revalidieren  true = am Browser-Cache vorbei beim Server
+ *   nachfragen. GitHub Pages liefert "Cache-Control: max-age=600", sonst
+ *   haelt der Browser App-Code bis zu zehn Minuten fest – auch wenn der
+ *   Service Worker laengst das Netz fragen wollte. Unveraendertes
+ *   beantwortet der Server mit 304, kostet also fast nichts.
+ */
+function holenUndCachen(req, revalidieren = false) {
+  const anfrage = revalidieren
+    ? new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+    : req;
+  return fetch(anfrage).then((res) => {
     if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
       const copy = res.clone();
       caches.open(CACHE_NAME).then((c) => c.put(req, copy));
@@ -89,7 +105,7 @@ self.addEventListener('fetch', (event) => {
   // Rueckfall. Sonst laeuft auf den Geraeten noch tagelang alter Code,
   // obwohl laengst eine neue Version veroeffentlicht ist.
   event.respondWith(
-    holenUndCachen(req).catch(() => caches.match(req).then((cached) => {
+    holenUndCachen(req, true).catch(() => caches.match(req).then((cached) => {
       if (cached) return cached;
       if (req.mode === 'navigate') return caches.match('./index.html');
       return Response.error();
