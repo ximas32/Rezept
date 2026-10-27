@@ -88,8 +88,30 @@ function initShell() {
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol === 'file:') return;
+
+  const hatteController = Boolean(navigator.serviceWorker.controller);
+  let laedtNeu = false;
+
+  // Uebernimmt eine neue Version, laedt die Seite einmal neu – ausser der
+  // Editor ist offen, dann waere die Eingabe weg.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hatteController || laedtNeu) return;
+    laedtNeu = true;
+    if (/^#\/(neu|bearbeiten)/.test(location.hash)) {
+      toast('Neue Version geladen – sie wird beim nächsten Start aktiv.');
+      return;
+    }
+    location.reload();
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW:', err));
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      // Beim Zurueckholen der App nach Updates sehen – eine installierte PWA
+      // wird sonst selten neu geladen.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    }).catch((err) => console.warn('SW:', err));
   });
 }
 

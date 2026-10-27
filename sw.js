@@ -1,7 +1,7 @@
 /* Service Worker – App-Shell Cache.
    WICHTIG: Bei jedem Deploy CACHE_VERSION hochzählen, damit alle Geräte
    die neue Version bekommen. */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `rezeptbuch-${CACHE_VERSION}`;
 
 const SHELL = [
@@ -52,6 +52,16 @@ self.addEventListener('message', (event) => {
   if (event.data === 'skip-waiting') self.skipWaiting();
 });
 
+function holenUndCachen(req) {
+  return fetch(req).then((res) => {
+    if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then((c) => c.put(req, copy));
+    }
+    return res;
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -66,33 +76,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation: erst Netz, bei Offline die gecachte index.html.
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put('./index.html', copy));
-          return res;
-        })
-        .catch(() => caches.match('./index.html').then((r) => r || caches.match('./')))
-    );
+  // Fremde Hosts (z. B. das Firebase-SDK vom CDN) normal durchreichen.
+  if (url.origin !== self.location.origin) return;
+
+  // Bilder, Icons, Schriften aendern sich praktisch nie -> Cache zuerst.
+  if (/\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?)$/i.test(url.pathname)) {
+    event.respondWith(caches.match(req).then((c) => c || holenUndCachen(req)));
     return;
   }
 
-  // Übrige Assets: Cache zuerst, im Hintergrund aktualisieren.
+  // Seiten, JavaScript, CSS: IMMER zuerst das Netz fragen, Cache nur als
+  // Rueckfall. Sonst laeuft auf den Geraeten noch tagelang alter Code,
+  // obwohl laengst eine neue Version veroeffentlicht ist.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((res) => {
-          if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    holenUndCachen(req).catch(() => caches.match(req).then((cached) => {
+      if (cached) return cached;
+      if (req.mode === 'navigate') return caches.match('./index.html');
+      return Response.error();
+    }))
   );
 });
