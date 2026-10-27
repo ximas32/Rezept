@@ -30,8 +30,8 @@ export const firebaseConfig = {
 /* Wer darf rein? Dieselben Adressen auch in firestore.rules eintragen –
    dort wird es wirklich durchgesetzt, hier dient es nur der Fehlermeldung. */
 export const ALLOWED_EMAILS = [
-  'deine@mail.ch',
-  'ihre@mail.ch'
+  'akumalic@proton.me',
+  'parathazhammaria@gmail.com'
 ];
 
 /* Kategorien – frei erweiterbar. id = intern, label = Anzeige. */

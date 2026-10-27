@@ -3,9 +3,10 @@ rules_version = '2';
 // Firebase Console -> Firestore Database -> Regeln -> diesen Text einfuegen
 // -> Veroeffentlichen.
 //
-// WICHTIG: Unten die beiden E-Mail-Adressen durch eure echten ersetzen
-// (alles klein geschrieben). Nur diese Adressen duerfen lesen und schreiben –
+// Nur die beiden unten eingetragenen Adressen duerfen lesen und schreiben –
 // selbst wenn sich jemand anders ein Konto anlegt, sieht er nichts.
+// Kommt eine Adresse dazu, hier ergaenzen UND in js/config.js, danach
+// die Regeln in der Console neu veroeffentlichen.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,8 +15,8 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email != null
         && request.auth.token.email.lower() in [
-             'deine@mail.ch',
-             'ihre@mail.ch'
+             'akumalic@proton.me',
+             'parathazhammaria@gmail.com'
            ];
     }
 
