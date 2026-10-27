@@ -151,6 +151,36 @@ Nach einer Änderung an den Dateien: in `sw.js` die `CACHE_VERSION` erhöhen
 In `js/config.js` die Liste `CATEGORIES` anpassen – fertig. Bestehende Rezepte
 behalten ihre Kategorie; entfernst du eine, werden sie als *Sonstiges* angezeigt.
 
+## Ist der öffentliche API-Key ein Problem?
+
+Nein. Google schreibt dazu selbst: *„API-Schlüssel für Firebase-Dienste
+identifizieren nur Ihr Firebase-Projekt … Sie können sie bedenkenlos in Ihren
+Code oder Ihre Konfigurationsdateien einfügen."*
+([Dokumentation](https://firebase.google.com/docs/projects/api-keys?hl=de))
+Der Schlüssel ist kein Passwort, sondern eine Absenderadresse. Wer eure Rezepte
+lesen will, scheitert an den Firestore-Regeln, nicht am Schlüssel.
+
+Bekommst du von Google die Mail *„Öffentlich zugänglicher Google-API-Schlüssel"*,
+prüfe laut Google diese drei Punkte unter
+*Google Cloud Console → APIs & Dienste → Anmeldedaten*:
+
+1. Es ist der Schlüssel `Browser key (auto created by Firebase)` und wird nur
+   für Firebase verwendet.
+2. In seiner API-Zulassungsliste stehen nur Firebase-APIs – **insbesondere
+   nicht** die *Generative Language API*.
+3. Security Rules sind aktiv (bei uns: `firestore.rules`). ✔
+
+Optionale Härtung, beides nicht zwingend:
+
+- **Schlüssel auf eure Domain beschränken**: in der Cloud Console beim Schlüssel
+  unter *Anwendungseinschränkungen* → *Websites* → `ximas32.github.io`
+  eintragen (plus `localhost` fürs lokale Testen). Google rät, solche Änderungen
+  vorher zu testen – falsch gesetzt, geht die Anmeldung nicht mehr.
+- **Registrierung schliessen**, sobald beide Konten existieren: in der
+  Firebase-Console unter *Authentifizierung → Einstellungen* gibt es einen
+  Schalter für Nutzeraktionen, mit dem sich das Anlegen neuer Konten abschalten
+  lässt. Weitere Konten legst du danach von Hand im Reiter *Nutzer* an.
+
 ## Kosten
 
 Alles im Gratis-Rahmen: GitHub Pages ist kostenlos, Firebase Spark ebenso.
